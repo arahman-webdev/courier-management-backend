@@ -91,3 +91,13 @@ process.on("uncaughtException", (err) => {
  * uncaught rejection error
  * signal termination sigterm
  */
+
+
+/**
+ * at first: user related 
+ * 2nd Create custom error and zod error and create not found route
+ * adding password 
+ * 3rd jwt token create jwt helper and checkauth middleware
+ * 4th: google login with passport js
+ * 
+ */
