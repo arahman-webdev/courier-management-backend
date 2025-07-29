@@ -1,13 +1,14 @@
 import express from "express"
-import { userSerivice } from "./user.service"
+
+import { UserController } from "./user.controller"
 
 const router = express.Router()
 
 
 
-router.post('/register', userSerivice.createUserService)
+router.post('/register', UserController.createUser)
 
-
+router.get('/', UserController.getAllUsers)
 
 
 

@@ -1,49 +1,44 @@
-import { NextFunction, Request, Response } from "express";
+
 import { User } from "./user.model";
 import bcryptjs from "bcryptjs";
-import { IAuthProvider } from "./user.interface";
-const createUserService = async (req: Request, res: Response, next: NextFunction) => {
+import { IAuthProvider, IUser } from "./user.interface";
+const createUserService = async (payload: IUser) => {
 
-    try {
-        const { email, password, ...rest } = req.body
+    const { email, password, ...rest } = payload
 
-       console.log(rest)
+    const isExistingUser = await User.findOne({ email })
 
-        const isExistUser = await User.findOne({ email })
-
-        if (isExistUser) {
-            throw new Error("Email already exist")
-        }
-
-        const salt = await bcryptjs.genSalt(10);
-        const hashPassword = await bcryptjs.hash(password, salt);
-
-        const authProvider: IAuthProvider = { provider: "credential", providerId: email }
-
-        // const user = await User.create({
-        //     email,
-        //     password: hashPassword,
-        //     auth: [authProvider],
-        //     ...rest
-        // })
-
-        console.log(user)
-
-        res.json({
-            success: true,
-            message: "User created successfully",
-            data: user
-        })
-
-    } catch (error) {
-        console.log(error)
-        next(error)
+    if (isExistingUser) {
+        throw new Error("Email already exist")
     }
+
+    const salt = await bcryptjs.genSalt(10);
+    const hashPassword = await bcryptjs.hash(password as string, salt);
+
+    const authProvider:IAuthProvider = {provider: "credential", providerId: email as string}
+
+    const user = await User.create({
+        email,
+        password: hashPassword,
+        auth:[authProvider],
+        ...rest
+    })
+
+    return user
+
+}
+
+
+const getAllUsersService = async()=>{
+
+    const getAllUsers = await User.find()
+    return getAllUsers
 }
 
 
 export const userSerivice = {
-    createUserService
+    createUserService,
+    getAllUsersService
 }
 
 
