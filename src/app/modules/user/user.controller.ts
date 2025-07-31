@@ -13,7 +13,6 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
             data: user
         })
     } catch (error) {
-        console.log(error)
         next(error)
     }
 }
@@ -30,8 +29,6 @@ const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
             data: getUsers
         })
     } catch (error) {
-        console.log(error)
-
         next(error)
     }
 }
@@ -41,11 +38,12 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.params.id
         const payload = req.body
-        const updateUser = await userSerivice.updateUserService(userId, payload)
+        const decodedToken = req.user
+        const updateUser = await userSerivice.updateUserService(userId, payload, decodedToken)
 
         res.json({
             success: true,
-            message: "User retreived succssfully",
+            message: "User updated succssfully",
             data: updateUser
         })
     } catch (error) {

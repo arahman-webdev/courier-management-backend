@@ -1,6 +1,8 @@
 import express from "express"
 
 import { UserController } from "./user.controller"
+import { checkAuth } from "../../middleware/checkAuth"
+import { Role } from "./user.interface"
 
 const router = express.Router()
 
@@ -8,8 +10,8 @@ const router = express.Router()
 
 router.post('/register', UserController.createUser)
 
-router.get('/', UserController.getAllUsers)
+router.get('/', checkAuth((Role.ADMIN)),UserController.getAllUsers)
 
-router.patch('/:id', UserController.updateUser)
+router.patch('/:id',checkAuth(...Object.values(Role)), UserController.updateUser)
 
 export const userRoutes = router 

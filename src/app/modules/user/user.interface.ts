@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 export enum Role {
     ADMIN = "ADMIN",
     SENDER = "SENDER",
-    RECIEVER = "RECIEVER"
+    RECEIVER = "RECEIVER"
 }
 
 export enum IsActive {
@@ -31,5 +31,5 @@ export interface IUser {
     address?: string,
     isActive?: IsActive,
     isVerified?: boolean,
-    auth?: IAuthProvider
+    auth?: IAuthProvider[]
 }
