@@ -37,7 +37,8 @@ const getMyParcel = async (req: Request, res: Response, next: NextFunction) => {
 const updateParcel = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const parcelId = req.params.id;
-        const parcel = await parcelService.updateParcelService(parcelId, req.body)
+        const userId = req.user.userId
+        const parcel = await parcelService.updateParcelService(parcelId, userId)
 
         res.json({
             success: true,
@@ -50,8 +51,42 @@ const updateParcel = async (req: Request, res: Response, next: NextFunction) => 
 }
 
 
+const updateParcelStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const parcelId = req.params.id;
+        const userId = req.user.userId
+        const parcel = await parcelService.updateParcelStatusService(parcelId, userId)
+
+        res.json({
+            success: true,
+            message: "Parcel updated sucessfully",
+            data: parcel
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+const updateParcelConfirmation = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const parcelId = req.params.id;
+        const userId = req.user.userId
+        const parcel = await parcelService.updateConfirmation(parcelId, userId)
+
+        res.json({
+            success: true,
+            message: "Parcel confirmed sucessfully",
+            data: parcel
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
 export const parcelController = {
     createParcel,
     getMyParcel,
-    updateParcel
+    updateParcel,
+    updateParcelStatus,
+    updateParcelConfirmation
 }

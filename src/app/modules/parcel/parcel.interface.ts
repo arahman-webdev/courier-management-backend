@@ -33,6 +33,7 @@ export interface IParcel {
     receiverInfo: Types.ObjectId,
     status: ParcelStatus,
     statusLog: IParcelStatusLog[],
+    isConfirmed: boolean,
     isCancelled: boolean,
     isBlocked: boolean
 }

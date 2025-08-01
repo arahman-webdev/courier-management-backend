@@ -35,6 +35,7 @@ const parcelSchema = new Schema<IParcel>({
         deliveryAddress: {type: String, required: true},
         senderInfo: {type: Schema.Types.ObjectId, ref: "User", required: true},
         receiverInfo: {type: Schema.Types.ObjectId, ref: "User", required: true},
+        isConfirmed: {type: Boolean, default: false},
         isCancelled: {type: Boolean, default: false},
         isBlocked: {type: Boolean, default: false},
         status: {

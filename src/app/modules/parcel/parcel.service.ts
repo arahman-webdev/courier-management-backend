@@ -1,6 +1,8 @@
+
+import { Types } from "mongoose";
 import AppError from "../../errorHelper/AppError";
 import { Role } from "../user/user.interface";
-import { IParcel } from "./parcel.interface";
+import { IParcel, ParcelStatus } from "./parcel.interface";
 import { Parcel } from "./parcel.model";
 import statusCode from "http-status-codes"
 
@@ -39,7 +41,7 @@ const getParcelService = async (userId: string, role: Role) => {
 
     const parcel = await Parcel.find(query).populate('senderInfo', 'name email').populate("receiverInfo")
 
-  
+
 
     // Prevent access if no parcels found
     if (!parcel.length) {
@@ -49,26 +51,170 @@ const getParcelService = async (userId: string, role: Role) => {
     return parcel
 }
 
-const updateParcelService = async(id:string,userId: string, payload: Partial<IParcel>)=>{
+const updateParcelService = async (id: string, userId: string) => {
 
     const parcel = await Parcel.findById(id)
 
-    if(!parcel){
-        throw new AppError(404, "Parcel is not found")
+    if (!parcel) {
+        throw new AppError(403, "Parcel is not")
     }
 
-    if(parcel.senderInfo.toString() !== userId){
-        throw new AppError(403, "You are not allowed to cancel this parcel")
+
+    if (
+        parcel.status === ParcelStatus.DISPATCHED ||
+        parcel.status === ParcelStatus.IN_TRANSIT ||
+        parcel.status === ParcelStatus.DELIVERED ||
+        parcel.status === ParcelStatus.CANCELLED
+    ) {
+        throw new AppError(400, `Parcel cannot be cancelled at status: ${parcel.status}`);
     }
 
-    const cancelParcel = await Parcel.findByIdAndUpdate(id, payload, {new: true, runValidators: true})
+    const updateParcel = await Parcel.findByIdAndUpdate(
+        id,
+        {
+            $set: {
+                status: ParcelStatus.CANCELLED,
+                isCancelled: true
+            },
 
-    return cancelParcel
+            $push: {
+                status: ParcelStatus.CANCELLED,
+                timestamp: new Date(),
+                updatedBy: userId,
+                note: "Cancelled by Sender"
+            }
+        }
+    )
+
+    return updateParcel
+}
+const updateParcelStatusService = async (id: string, userId: string) => {
+
+    const parcel = await Parcel.findById(id);
+
+
+    if (!parcel) {
+        throw new AppError(404, "Parcel not found.");
+    }
+
+    const currentStatus = parcel.status;
+
+    const statuses = [
+        ParcelStatus.REQUESTED,
+        ParcelStatus.APPROVED,
+        ParcelStatus.DISPATCHED,
+        ParcelStatus.IN_TRANSIT,
+        ParcelStatus.DELIVERED
+    ];
+
+    const currentIndex = statuses.indexOf(currentStatus);
+    const nextStatus = statuses[currentIndex + 1];
+
+    if (currentIndex === -1 || !nextStatus) {
+        throw new AppError(400, "Cannot update status any longer");
+    }
+
+    // Update parcel
+    parcel.status = nextStatus;
+    parcel.statusLog.push({
+        status: nextStatus,
+        timestamp: new Date(),
+        updatedBy: new Types.ObjectId(userId),
+        note: `Status updated to ${nextStatus}`
+    });
+
+    const updatedParcel = await parcel.save();
+
+    return updatedParcel;
+};
+
+
+const updateConfirmation = async (id: string, userId: string) => {
+    const parcel = await Parcel.findById(id)
+
+    if (!parcel) {
+        throw new AppError(statusCode.NOT_FOUND, "Parcel not found")
+    }
+
+    if(parcel.status !== ParcelStatus.IN_TRANSIT){
+        throw new AppError(statusCode.BAD_REQUEST, "If parcels in 'In-Transit' can be confirmed")
+    }
+
+    const update = await Parcel.findByIdAndUpdate(
+        id,
+
+        {
+            $set: {
+                status: ParcelStatus.DELIVERED,
+                isConfirmed: true
+            },
+
+            $push: {
+                statusLog: {
+                    status: ParcelStatus.DELIVERED,
+                    timestamp: new Date(),
+                    updatedBy: userId,
+                    note: "Confirmed by Receiver"
+                }
+            }
+        }
+    )
+
+    return update
+
+
 }
 
 
 export const parcelService = {
     createParcelService,
     getParcelService,
-    updateParcelService
+    updateParcelService,
+    updateParcelStatusService,
+    updateConfirmation
 }
+
+
+
+/**
+ *  3. Confirm Delivery (📥 Receiver Only)
+Endpoint: PATCH /parcels/confirm/:id
+
+Logic:
+
+Receiver confirms delivery → update status to DELIVERED.
+
+✅ 4. Admin: View All Parcels & Users
+Endpoints:
+
+GET /admin/parcels
+
+GET /admin/users
+
+With filters like:
+
+Status: /admin/parcels?status=IN_TRANSIT
+
+User: /admin/parcels?user=userid
+
+✅ 5. Public Tracking Endpoint (🔍 Optional)
+Endpoint: GET /tracking/:trackingId
+
+Anyone can view parcel tracking history by its ID.
+
+✅ 6. Block/Unblock Parcel or User (🔒 Admin)
+Endpoints:
+
+PATCH /admin/parcels/block/:id
+
+PATCH /admin/users/block/:id
+
+Admin sets isBlocked flag.
+
+✅ 7. Filter & Search for Sender/Receiver
+e.g., GET /parcels?status=DELIVERED
+
+Useful for dashboard/frontend filtering.
+
+
+ */
