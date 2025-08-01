@@ -85,7 +85,7 @@ const blockParcel = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const parcelId = req.params.id;
         const userId = req.user.userId
-        const parcel = await parcelService.updateConfirmation(parcelId, userId)
+        const parcel = await parcelService.blockParcel(parcelId, userId)
 
         res.json({
             success: true,
@@ -102,6 +102,8 @@ const getParcelStatusLog = async (req: Request, res: Response, next: NextFunctio
     try {
 
         const parcelId = req.params.id
+
+        console.log(parcelId)
         const parcelLogInfo = await parcelService.getParcelLogInfo(parcelId)
 
         res.json({
@@ -115,6 +117,56 @@ const getParcelStatusLog = async (req: Request, res: Response, next: NextFunctio
 }
 
 
+const unblockParcel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const parcelId = req.params.id
+        const userId = req.user._id
+        console.log(parcelId)
+        const unblockParcel = await parcelService.unblockParcel(parcelId, userId)
+
+
+
+        res.json({
+            success: true,
+            message: "Parcel unblocked sucessfully",
+            data: unblockParcel
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const returnParcel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const parcelId = req.params.id;
+        const userId = req.user.id;
+        const userRole = req.user.userRole
+
+        const returned = await parcelService.returnParcel(parcelId, userId, userRole)
+
+        res.json({
+            success: true,
+            message: "Parcel returned sucessfully",
+            data: returned
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const deleteParcel = async (req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const parcelId = req.params.id
+        console.log("from parce controller",parcelId)
+
+        const deleted = await parcelService.deleteParcel(parcelId)
+        console.log(deleted)
+    } catch (error) {
+        next(error)
+    }
+}
+
+
 const getAllParcels = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -122,12 +174,11 @@ const getAllParcels = async (req: Request, res: Response, next: NextFunction) =>
 
         const parcel = await parcelService.getAllParcels(query)
 
-     
-
         res.json({
             success: true,
             message: "Parcel retreived sucessfully",
-            data: parcel
+            data: parcel.allParcels,
+            meta: parcel.meta
         })
     } catch (error) {
         next(error)
@@ -142,5 +193,8 @@ export const parcelController = {
     updateParcelConfirmation,
     blockParcel,
     getParcelStatusLog,
-    getAllParcels
+    getAllParcels,
+    unblockParcel,
+    returnParcel,
+    deleteParcel
 }

@@ -7,35 +7,7 @@ import bcryptjs from "bcryptjs"
 import httpStatus from "http-status-codes"
 
 
-// const credentialsLoginService = async (payload: Partial<IUser>) => {
 
-//     const { email, password } = payload
-
-//     const isExistingUser = await User.findOne({ email })
-
-//     if (!isExistingUser) {
-//         throw new AppError(404, "User not found");
-//     }
-
-
-//     const isPasswordMatch = await bcryptjs.compare(password as string, isExistingUser.password as string)
-
-//     if (!isPasswordMatch) {
-//         throw new AppError(400, "Password is not match")
-//     }
-
-
-
-//     const userTokens = createUserToken(isExistingUser)
-
-    
-
-
-//     return {
-//         accessToken: userTokens.accessToken,
-//         refreshToken: userTokens.refreshToken
-//     }
-// }
 
 
 const credentialsLoginService = async (payload: Partial<IUser>) => {

@@ -2,7 +2,8 @@ import { Query } from 'mongoose';
 
 export class QueryBuilder<T> {
     public modelQuery: Query<T[], T>;
-    public readonly query: Record<string, string>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public readonly query: Record<string, any>;
 
     constructor(modelQuery: Query<T[], T>, query: Record<string, string>) {
         this.modelQuery = modelQuery;
@@ -16,6 +17,18 @@ export class QueryBuilder<T> {
         for (const field of excludedFields) {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete filter[field];
+        }
+
+        if (filter.deliveryDate) {
+            const dayStart = new Date(filter.deliveryDate);
+            const dayEnd = new Date(filter.deliveryDate);
+            dayEnd.setUTCHours(23, 59, 59, 999);
+
+            filter.deliveryDate = { $gte: dayStart, $lte: dayEnd };
+        }
+
+        if (filter.status) {
+            filter.status = { $regex: new RegExp(`^${filter.status}$`, "i") };
         }
 
         this.modelQuery = this.modelQuery.find(filter);
@@ -53,7 +66,7 @@ export class QueryBuilder<T> {
 
     paginate(): this {
         const page = Number(this.query.page) || 1;
-        const limit = Number(this.query.limit) || 10;
+        const limit = Number(this.query.limit) || 2;
         const skip = (page - 1) * limit;
 
         this.modelQuery = this.modelQuery.skip(skip).limit(limit);
@@ -63,7 +76,7 @@ export class QueryBuilder<T> {
     async getMeta() {
         const totalDocuments = await this.modelQuery.model.countDocuments();
         const page = Number(this.query.page) || 1;
-        const limit = Number(this.query.limit) || 10;
+        const limit = Number(this.query.limit) || 2;
         const totalPages = Math.ceil(totalDocuments / limit);
 
         return {

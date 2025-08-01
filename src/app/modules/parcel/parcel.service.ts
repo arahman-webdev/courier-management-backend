@@ -6,6 +6,8 @@ import { Role } from "../user/user.interface";
 import { IParcel, ParcelStatus } from "./parcel.interface";
 import { Parcel } from "./parcel.model";
 import statusCode from "http-status-codes"
+import { QueryBuilder } from "../../utills/QueryBuilder";
+
 
 const getTrackingId = () => {
     return `TRA_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -208,6 +210,8 @@ const blockParcel = async (id: string, userId: string) => {
         }
     )
 
+    console.log("from block", update)
+
     return update
 
 
@@ -231,51 +235,118 @@ const getParcelLogInfo = async (parcelId: string) => {
 }
 
 
-// const getAllParcels = async (query: Record<string, string>) => {
-
-//     const filter = query;
-
-
-
-//     console.log(query)
-
-//     const filterParcel = await Parcel.find(filter)
-
-//     return filterParcel
-// }
-
-
-// parcel.service.ts
 const getAllParcels = async (query: Record<string, string>) => {
-    const filter: Record<string, any> = {};
+    const parcelsQuery = new QueryBuilder<IParcel>(Parcel.find(), query);
+
+    const allParcels = await parcelsQuery
+        .filter()
+        .search(['trackingId', 'deliveryAddress'])
+        .sort()
+        .select()
+        .paginate()
+        .modelQuery;
+
+    console.log(allParcels)
 
 
-   
-    // Add status filter
-    if (query.status) {
-        filter.status = query.status;
+
+    const meta = await parcelsQuery.getMeta();
+
+    return { allParcels, meta };
+};
+
+
+const unblockParcel = async (id: string, userId: string) => {
+    const parcel = await Parcel.findById(id);
+    if (!parcel) throw new AppError(404, "Parcel not found");
+
+    if (!parcel.isBlocked) throw new AppError(400, "Parcel is not blocked");
+
+    const updatedParcel = await Parcel.findByIdAndUpdate(
+        id,
+        {
+            status: ParcelStatus.REQUESTED,
+            isBlocked: false,
+            $push: {
+                statusLogs: {
+                    status: ParcelStatus.IN_TRANSIT,
+                    updatedBy: userId,
+                    note: "Unblocked by Admin",
+                    timestamp: new Date(),
+                },
+            },
+        },
+        { new: true }
+    );
+
+    return updatedParcel
+};
+
+
+
+const returnParcel = async (id: string, userId: string, role: Role) => {
+    const parcel = await Parcel.findById(id);
+    if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
+
+    if (parcel.status !== ParcelStatus.IN_TRANSIT) {
+        throw new AppError(statusCode.BAD_REQUEST, "Only IN_TRANSIT parcels can be returned");
     }
 
-    // Add delivery date range filtering
-    if (query.from || query.to) {
-        filter.deliveryDate = {};
-        if (query.from) {
-            filter.deliveryDate.$gte = new Date(query.from);
-        }
-        if (query.to) {
-            filter.deliveryDate.$lte = new Date(query.to);
-        }
+  const updated = await Parcel.findByIdAndUpdate(
+    id,
+    {
+      status: ParcelStatus.RETURNED,
+      $push: {
+        statusLogs: {
+          status: ParcelStatus.RETURNED,
+          updatedBy: userId,
+          note: `${role} marked as returned`,
+          timestamp: new Date(),
+        },
+      },
+    },
+    { new: true }
+  );
+
+  return updated
+};
+
+
+// const rescheduleParcel = async (id: string,newDate: Date,userId: string) => {
+//     const parcel = await Parcel.findById(id);
+//     if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
+
+//     parcel.deliveryDate = newDate;
+//     parcel.status = ParcelStatus.RESCHEDULED;
+//     parcel.statusLog.push({
+//         status: ParcelStatus.RESCHEDULED,
+//         timestamp: new Date(),
+//         updatedBy: new Types.ObjectId(userId),
+//         note: `Rescheduled to ${newDate.toISOString()}`
+//     });
+
+//     await parcel.save();
+//     return parcel;
+// };
+
+
+const deleteParcel = async (id: string) => {
+    const parcel = await Parcel.findById(id);
+    if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
+
+    if (
+        ![ParcelStatus.CANCELLED, ParcelStatus.REQUESTED].includes(parcel.status)
+    ) {
+        throw new AppError(
+            statusCode.BAD_REQUEST,
+            "Only CANCELLED or REQUESTED parcels can be deleted"
+        );
     }
 
-    // You can add more filters here like senderInfo, receiverInfo, etc.
+    const deleteParcel = await Parcel.findByIdAndDelete(id);
 
-    const filteredParcels = await Parcel.find(filter)
-        .populate('senderInfo', 'name email')
-        .populate('receiverInfo', 'name email');
-
-        console.log(filteredParcels)
-
-    return filteredParcels;
+    
+    return deleteParcel
 };
 
 
@@ -288,7 +359,10 @@ export const parcelService = {
     updateConfirmation,
     blockParcel,
     getParcelLogInfo,
-    getAllParcels
+    getAllParcels,
+    unblockParcel,
+    returnParcel,
+    deleteParcel
 }
 
 

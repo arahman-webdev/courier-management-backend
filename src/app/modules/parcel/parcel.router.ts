@@ -12,6 +12,9 @@ router.patch('/cancel/:id', checkAuth(Role.SENDER), parcelController.updateParce
 router.patch('/status/:id', checkAuth(Role.ADMIN), parcelController.updateParcelStatus)
 router.patch('/confirm/:id', checkAuth(Role.RECEIVER), parcelController.updateParcelConfirmation)
 router.patch('/block/:id', checkAuth(Role.ADMIN), parcelController.blockParcel)
+router.patch('/unblcok/:id', checkAuth(Role.ADMIN), parcelController.unblockParcel)
+router.patch('/return/:id', checkAuth(Role.ADMIN, Role.RECEIVER), parcelController.returnParcel)
+router.delete('/delete/:id', checkAuth(Role.ADMIN, Role.SENDER), parcelController.deleteParcel)
 router.get('/:id/status-log', checkAuth(...Object.values(Role)), parcelController.getParcelStatusLog)
 router.get('/', parcelController.getAllParcels)
 
