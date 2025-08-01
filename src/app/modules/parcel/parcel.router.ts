@@ -10,6 +10,10 @@ router.post('/', checkAuth(Role.ADMIN, Role.SENDER), parcelController.createParc
 router.get('/me', checkAuth(Role.SENDER, Role.RECEIVER), parcelController.getMyParcel)
 router.patch('/cancel/:id', checkAuth(Role.SENDER), parcelController.updateParcel)
 router.patch('/status/:id', checkAuth(Role.ADMIN), parcelController.updateParcelStatus)
+router.patch('/confirm/:id', checkAuth(Role.RECEIVER), parcelController.updateParcelConfirmation)
+router.patch('/block/:id', checkAuth(Role.ADMIN), parcelController.blockParcel)
+router.get('/:id/status-log', checkAuth(...Object.values(Role)), parcelController.getParcelStatusLog)
+router.get('/', parcelController.getAllParcels)
 
 
 // pass: 123456A2a$

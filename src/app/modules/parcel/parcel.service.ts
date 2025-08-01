@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Types } from "mongoose";
 import AppError from "../../errorHelper/AppError";
@@ -99,7 +100,7 @@ const updateParcelStatusService = async (id: string, userId: string) => {
 
     const currentStatus = parcel.status;
 
-    const statuses = [
+    const statusFlow = [
         ParcelStatus.REQUESTED,
         ParcelStatus.APPROVED,
         ParcelStatus.DISPATCHED,
@@ -107,8 +108,8 @@ const updateParcelStatusService = async (id: string, userId: string) => {
         ParcelStatus.DELIVERED
     ];
 
-    const currentIndex = statuses.indexOf(currentStatus);
-    const nextStatus = statuses[currentIndex + 1];
+    const currentIndex = statusFlow.indexOf(currentStatus);
+    const nextStatus = statusFlow[currentIndex + 1];
 
     if (currentIndex === -1 || !nextStatus) {
         throw new AppError(400, "Cannot update status any longer");
@@ -136,7 +137,7 @@ const updateConfirmation = async (id: string, userId: string) => {
         throw new AppError(statusCode.NOT_FOUND, "Parcel not found")
     }
 
-    if(parcel.status !== ParcelStatus.IN_TRANSIT){
+    if (parcel.status !== ParcelStatus.IN_TRANSIT) {
         throw new AppError(statusCode.BAD_REQUEST, "If parcels in 'In-Transit' can be confirmed")
     }
 
@@ -164,6 +165,119 @@ const updateConfirmation = async (id: string, userId: string) => {
 
 
 }
+const blockParcel = async (id: string, userId: string) => {
+    const parcel = await Parcel.findById(id)
+
+    if (!parcel) {
+        throw new AppError(statusCode.NOT_FOUND, "Parcel not found")
+    }
+
+    const blockableStatuses: ParcelStatus[] = [
+        ParcelStatus.REQUESTED,
+        ParcelStatus.APPROVED,
+        ParcelStatus.DISPATCHED,
+        ParcelStatus.IN_TRANSIT,
+        ParcelStatus.RESCHEDULED
+    ];
+
+    if (!blockableStatuses.includes(parcel.status)) {
+        throw new AppError(statusCode.BAD_REQUEST, `Parcels can only be blocked in these statuses: ${blockableStatuses.join(', ')}`)
+    }
+
+    if (parcel.isBlocked || parcel.status === ParcelStatus.BLOCKED) {
+        throw new AppError(statusCode.BAD_REQUEST, "Parcel is already blocked")
+    }
+
+    const update = await Parcel.findByIdAndUpdate(
+        id,
+
+        {
+            $set: {
+                status: ParcelStatus.BLOCKED,
+                isBlocked: true
+            },
+
+            $push: {
+                statusLog: {
+                    status: ParcelStatus.BLOCKED,
+                    timestamp: new Date(),
+                    updatedBy: userId,
+                    note: "Blocked by Admin"
+                }
+            }
+        }
+    )
+
+    return update
+
+
+}
+
+const getParcelLogInfo = async (parcelId: string) => {
+
+
+    const parcel = await Parcel.findById(parcelId)
+        .populate("statusLog.updatedBy", "name role email")
+        .populate("senderInfo", "id")
+        .populate("senderInfo", "id")
+
+
+
+    if (!parcel) {
+        throw new AppError(statusCode.NOT_FOUND, "Parcel is not found")
+    }
+
+    return parcel
+}
+
+
+// const getAllParcels = async (query: Record<string, string>) => {
+
+//     const filter = query;
+
+
+
+//     console.log(query)
+
+//     const filterParcel = await Parcel.find(filter)
+
+//     return filterParcel
+// }
+
+
+// parcel.service.ts
+const getAllParcels = async (query: Record<string, string>) => {
+    const filter: Record<string, any> = {};
+
+
+   
+    // Add status filter
+    if (query.status) {
+        filter.status = query.status;
+    }
+
+    // Add delivery date range filtering
+    if (query.from || query.to) {
+        filter.deliveryDate = {};
+        if (query.from) {
+            filter.deliveryDate.$gte = new Date(query.from);
+        }
+        if (query.to) {
+            filter.deliveryDate.$lte = new Date(query.to);
+        }
+    }
+
+    // You can add more filters here like senderInfo, receiverInfo, etc.
+
+    const filteredParcels = await Parcel.find(filter)
+        .populate('senderInfo', 'name email')
+        .populate('receiverInfo', 'name email');
+
+        console.log(filteredParcels)
+
+    return filteredParcels;
+};
+
 
 
 export const parcelService = {
@@ -171,50 +285,27 @@ export const parcelService = {
     getParcelService,
     updateParcelService,
     updateParcelStatusService,
-    updateConfirmation
+    updateConfirmation,
+    blockParcel,
+    getParcelLogInfo,
+    getAllParcels
 }
 
 
 
+
+
 /**
- *  3. Confirm Delivery (📥 Receiver Only)
-Endpoint: PATCH /parcels/confirm/:id
+ *  
 
-Logic:
+L
 
-Receiver confirms delivery → update status to DELIVERED.
 
-✅ 4. Admin: View All Parcels & Users
-Endpoints:
 
-GET /admin/parcels
-
-GET /admin/users
-
-With filters like:
-
-Status: /admin/parcels?status=IN_TRANSIT
-
-User: /admin/parcels?user=userid
-
-✅ 5. Public Tracking Endpoint (🔍 Optional)
-Endpoint: GET /tracking/:trackingId
-
-Anyone can view parcel tracking history by its ID.
-
-✅ 6. Block/Unblock Parcel or User (🔒 Admin)
-Endpoints:
-
-PATCH /admin/parcels/block/:id
-
-PATCH /admin/users/block/:id
-
-Admin sets isBlocked flag.
-
-✅ 7. Filter & Search for Sender/Receiver
+ Filter & Search for Sender/Receiver
 e.g., GET /parcels?status=DELIVERED
 
-Useful for dashboard/frontend filtering.
+
 
 
  */

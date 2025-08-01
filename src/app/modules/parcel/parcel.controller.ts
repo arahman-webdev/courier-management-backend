@@ -81,12 +81,66 @@ const updateParcelConfirmation = async (req: Request, res: Response, next: NextF
         next(error)
     }
 }
+const blockParcel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const parcelId = req.params.id;
+        const userId = req.user.userId
+        const parcel = await parcelService.updateConfirmation(parcelId, userId)
 
+        res.json({
+            success: true,
+            message: "Parcel blocked sucessfully",
+            data: parcel
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+const getParcelStatusLog = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        const parcelId = req.params.id
+        const parcelLogInfo = await parcelService.getParcelLogInfo(parcelId)
+
+        res.json({
+            success: true,
+            message: "Parcel logInfo retreived sucessfully",
+            data: parcelLogInfo
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+const getAllParcels = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        const query = req.query as Record<string, string>;
+
+        const parcel = await parcelService.getAllParcels(query)
+
+     
+
+        res.json({
+            success: true,
+            message: "Parcel retreived sucessfully",
+            data: parcel
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 
 export const parcelController = {
     createParcel,
     getMyParcel,
     updateParcel,
     updateParcelStatus,
-    updateParcelConfirmation
+    updateParcelConfirmation,
+    blockParcel,
+    getParcelStatusLog,
+    getAllParcels
 }
