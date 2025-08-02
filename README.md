@@ -66,6 +66,35 @@ And then npm run dev
 1. npm run build
 2. npm run start
 
+
+# Auth Routes
+
+POST	/auth/register	Register as sender or receiver	Public
+POST	/auth/login	Login with email and password	Public
+
+
+# User Routes
+
+GET	     /users	      Get all users	                   Admin
+PATCH	 /users/:id	Update user info	               Self / Admin
+PATCH	 /users/block/:id	Block or unblock a user	   Admin
+
+
+# Parcel Routes 
+
+OST	/parcels	                       Create a new parcel	            Sender
+GET	/parcels	                       Get parcels of logged-in user	Sender/Receiver
+PATCH	/parcels/cancel/:id	           Cancel a parcel	                Sender
+PATCH	/parcels/status/:id	           Update status of parcel	        Admin
+PATCH	/parcels/confirm/:id	       Confirm delivery	                Receiver
+PATCH	/parcels/block/:id	           Block a parcel	                Admin
+PATCH	/parcels/unblock/:id	       Unblock a parcel	                Admin
+PATCH	/parcels/return/:id	           Return a parcel	                Admin
+PATCH	/parcels/reschedule/:id	       Reschedule delivery	            Admin/Sender
+GET	    /parcels/log/:id	           See parcel status log	        Admin/Sender/Receiver
+GET	    /parcels/track/:trackingId	   Track parcel by tracking ID	    Public
+DELETE	/parcels/:id	               Delete a parcel	                Admin
+
 If you need help or want to connect
 
 Abdur rahman
