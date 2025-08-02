@@ -13,6 +13,8 @@ const getTrackingId = () => {
     return `TRA_${Date.now()}_${Math.floor(Math.random() * 1000)}`
 }
 
+/**--------------------------------------------Sender Or Admin */
+
 const createParcelService = async (payload: IParcel) => {
 
 
@@ -30,31 +32,7 @@ const createParcelService = async (payload: IParcel) => {
 
 }
 
-const getParcelService = async (userId: string, role: Role) => {
-
-    let query = {}
-
-    if (role === Role.RECEIVER) {
-        query = { receiverInfo: userId }
-    } else if (role === Role.SENDER) {
-        query = { senderInfo: userId }
-    } else {
-        throw new AppError(statusCode.BAD_REQUEST, "Access denied")
-    }
-
-    const parcel = await Parcel.find(query).populate('senderInfo', 'name email').populate("receiverInfo")
-
-
-
-    // Prevent access if no parcels found
-    if (!parcel.length) {
-        throw new AppError(404, `No parcels found for this user`);
-    }
-
-    return parcel
-}
-
-const updateParcelService = async (id: string, userId: string) => {
+const caneclParcelService = async (id: string, userId: string) => {
 
     const parcel = await Parcel.findById(id)
 
@@ -91,6 +69,36 @@ const updateParcelService = async (id: string, userId: string) => {
 
     return updateParcel
 }
+
+
+
+
+// Sender or receiver can check 
+const getParcelService = async (userId: string, role: Role) => {
+
+    let query = {}
+
+    if (role === Role.RECEIVER) {
+        query = { receiverInfo: userId }
+    } else if (role === Role.SENDER) {
+        query = { senderInfo: userId }
+    } else {
+        throw new AppError(statusCode.BAD_REQUEST, "Access denied")
+    }
+
+    const parcel = await Parcel.find(query).populate('senderInfo', 'name email').populate("receiverInfo")
+
+
+
+
+    if (!parcel.length) {
+        throw new AppError(404, `No parcels found for this user`);
+    }
+
+    return parcel
+}
+
+
 const updateParcelStatusService = async (id: string, userId: string) => {
 
     const parcel = await Parcel.findById(id);
@@ -167,6 +175,22 @@ const updateConfirmation = async (id: string, userId: string) => {
 
 
 }
+
+// admin sender or receiver can check 
+const trackParcelByTrackingIdService = async (trackingId: string) => {
+  const parcel = await Parcel.findOne({ trackingId })
+    .populate("senderInfo", "name email")
+    .populate("receiverInfo", "name email")
+    .populate("statusLog.updatedBy", "name role email");
+
+  if (!parcel) {
+    throw new AppError(statusCode.NOT_FOUND, "Parcel not found with this tracking ID");
+  }
+
+  return parcel;
+};
+
+// only admin
 const blockParcel = async (id: string, userId: string) => {
     const parcel = await Parcel.findById(id)
 
@@ -234,7 +258,7 @@ const getParcelLogInfo = async (parcelId: string) => {
     return parcel
 }
 
-
+// only admin -------------------
 const getAllParcels = async (query: Record<string, string>) => {
     const parcelsQuery = new QueryBuilder<IParcel>(Parcel.find(), query);
 
@@ -255,7 +279,7 @@ const getAllParcels = async (query: Record<string, string>) => {
     return { allParcels, meta };
 };
 
-
+// only admin-------------
 const unblockParcel = async (id: string, userId: string) => {
     const parcel = await Parcel.findById(id);
     if (!parcel) throw new AppError(404, "Parcel not found");
@@ -283,7 +307,7 @@ const unblockParcel = async (id: string, userId: string) => {
 };
 
 
-
+// admin or sender------------------
 const returnParcel = async (id: string, userId: string, role: Role) => {
     const parcel = await Parcel.findById(id);
     if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
@@ -292,25 +316,44 @@ const returnParcel = async (id: string, userId: string, role: Role) => {
         throw new AppError(statusCode.BAD_REQUEST, "Only IN_TRANSIT parcels can be returned");
     }
 
-  const updated = await Parcel.findByIdAndUpdate(
-    id,
-    {
-      status: ParcelStatus.RETURNED,
-      $push: {
-        statusLogs: {
-          status: ParcelStatus.RETURNED,
-          updatedBy: userId,
-          note: `${role} marked as returned`,
-          timestamp: new Date(),
+    const updated = await Parcel.findByIdAndUpdate(
+        id,
+        {
+            status: ParcelStatus.RETURNED,
+            $push: {
+                statusLogs: {
+                    status: ParcelStatus.RETURNED,
+                    updatedBy: userId,
+                    note: `${role} marked as returned`,
+                    timestamp: new Date(),
+                },
+            },
         },
-      },
-    },
-    { new: true }
-  );
+        { new: true }
+    );
 
-  return updated
+    return updated
 };
 
+// only admin or sender
+const deleteParcel = async (id: string) => {
+    const parcel = await Parcel.findById(id);
+    if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
+
+    if (
+        ![ParcelStatus.CANCELLED, ParcelStatus.REQUESTED].includes(parcel.status)
+    ) {
+        throw new AppError(
+            statusCode.BAD_REQUEST,
+            "Only CANCELLED or REQUESTED parcels can be deleted"
+        );
+    }
+
+    const deleteParcel = await Parcel.findByIdAndDelete(id);
+
+
+    return deleteParcel
+};
 
 // const rescheduleParcel = async (id: string,newDate: Date,userId: string) => {
 //     const parcel = await Parcel.findById(id);
@@ -330,31 +373,13 @@ const returnParcel = async (id: string, userId: string, role: Role) => {
 // };
 
 
-const deleteParcel = async (id: string) => {
-    const parcel = await Parcel.findById(id);
-    if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
-
-    if (
-        ![ParcelStatus.CANCELLED, ParcelStatus.REQUESTED].includes(parcel.status)
-    ) {
-        throw new AppError(
-            statusCode.BAD_REQUEST,
-            "Only CANCELLED or REQUESTED parcels can be deleted"
-        );
-    }
-
-    const deleteParcel = await Parcel.findByIdAndDelete(id);
-
-    
-    return deleteParcel
-};
 
 
 
 export const parcelService = {
     createParcelService,
     getParcelService,
-    updateParcelService,
+    caneclParcelService,
     updateParcelStatusService,
     updateConfirmation,
     blockParcel,
@@ -362,7 +387,8 @@ export const parcelService = {
     getAllParcels,
     unblockParcel,
     returnParcel,
-    deleteParcel
+    deleteParcel,
+    trackParcelByTrackingIdService
 }
 
 

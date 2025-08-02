@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { parcelService } from "./parcel.service";
-
+import statusCode from "http-status-codes"
 const createParcel = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
@@ -34,11 +34,11 @@ const getMyParcel = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-const updateParcel = async (req: Request, res: Response, next: NextFunction) => {
+const cancelParcel = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const parcelId = req.params.id;
         const userId = req.user.userId
-        const parcel = await parcelService.updateParcelService(parcelId, userId)
+        const parcel = await parcelService.caneclParcelService(parcelId, userId)
 
         res.json({
             success: true,
@@ -185,10 +185,27 @@ const getAllParcels = async (req: Request, res: Response, next: NextFunction) =>
     }
 }
 
+const trackParcelByTrackingId = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { trackingId } = req.params;
+
+    const parcel = await parcelService.trackParcelByTrackingIdService(trackingId);
+
+    res.status(statusCode.OK).json({
+      success: true,
+      message: "Parcel tracked successfully",
+      data: parcel,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 export const parcelController = {
     createParcel,
     getMyParcel,
-    updateParcel,
+    cancelParcel,
     updateParcelStatus,
     updateParcelConfirmation,
     blockParcel,
@@ -196,5 +213,6 @@ export const parcelController = {
     getAllParcels,
     unblockParcel,
     returnParcel,
-    deleteParcel
+    deleteParcel,
+    trackParcelByTrackingId
 }

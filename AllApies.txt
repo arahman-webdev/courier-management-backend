@@ -1,0 +1,30 @@
+All Api for Testing 
+
+-------------Parcel ---------------------
+
+create parcel: http://localhost:5000/api/v1/parcels
+getMyParcel: http://localhost:5000/api/v1/parcels/me
+update: http://localhost:5000/api/v1/parcels/cancel/688adce836fc0be56e8ad212
+update status: http://localhost:5000/api/v1/parcels/status/688c088ce6c4200a38875e88
+confirm parcel: http://localhost:5000/api/v1/parcels/confirm/688c088ce6c4200a38875e88
+status log: http://localhost:5000/api/v1/parcels/688adce836fc0be56e8ad212/status-log
+get all parcel: http://localhost:5000/api/v1/parcels?sort=type
+block parcel: http://localhost:5000/api/v1/parcels/block/688c8f1bbf7686a612a03273
+unblock: http://localhost:5000/api/v1/parcels/unblcok/688c8f1bbf7686a612a03273
+return: http://localhost:5000/api/v1/parcels/return/688c8f1bbf7686a612a03273
+delete: http://localhost:5000/api/v1/parcels/delete/688c8f1bbf7686a612a03273
+tracking: http://localhost:5000/api/v1/parcels/tracking/TRA_1753933164277_712
+
+
+-----------------USER -----------------------------
+
+Registration: http://localhost:5000/api/v1/user/register
+updat: http://localhost:5000/api/v1/user/688ac76fd8bec102c0aac857
+getAlluser: http://localhost:5000/api/v1/user
+block : http://localhost:5000/api/v1/user/block/688da8373f537263834671b8
+
+Login-----------------------------
+
+login: http://localhost:5000/api/v1/auth/login
+logout: http://localhost:5000/api/v1/auth/logout
+getRefreshToken: http://localhost:5000/api/v1/auth/refresh-token
