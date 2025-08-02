@@ -1,7 +1,7 @@
 
 import { User } from "./user.model";
 import bcryptjs from "bcryptjs";
-import { IAuthProvider, IUser, Role } from "./user.interface";
+import { IAuthProvider, IUser, Role, UserStatus } from "./user.interface";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
 import AppError from "../../errorHelper/AppError";
@@ -11,14 +11,18 @@ const createUserService = async (payload: IUser) => {
 
     const { email, password, ...rest } = payload
 
+
+
     const isExistingUser = await User.findOne({ email })
 
     if (isExistingUser) {
         throw new Error("Email already exist")
     }
 
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password as string, salt);
+
+    const hashPassword = await bcryptjs.hash(password as string, Number(envVars.BCRYPT_SALT_ROUNDS));
+
+    console.log(hashPassword)
 
     const authProvider: IAuthProvider = { provider: "credential", providerId: email as string }
 
@@ -56,7 +60,7 @@ const updateUserService = async (userId: string, payload: Partial<IUser>, decode
             throw new AppError(statusCodes.FORBIDDEN, "You are not authorized to update this user.");
         }
     }
-    // 🚫 Role update restriction
+    // Role update restriction
 
     if (payload.role) {
         if (decodedToken.userRole === Role.RECEIVER || decodedToken.userRole === Role.SENDER) {
@@ -73,7 +77,9 @@ const updateUserService = async (userId: string, payload: Partial<IUser>, decode
         }
     }
 
-    // ✅ Hash password if present
+
+
+    // Hash password if present
     if (payload.password) {
         payload.password = await bcryptjs.hash(payload.password, Number(envVars.BCRYPT_SALT_ROUNDS));
     }
@@ -84,11 +90,24 @@ const updateUserService = async (userId: string, payload: Partial<IUser>, decode
 }
 
 
+const toggleBlockUserService = async (userId: string, block: boolean) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError(statusCodes.NOT_FOUND, "User not found");
+
+  user.isActive = block ? UserStatus.BLOCKED : UserStatus.ACTIVE;
+  await user.save();
+
+
+
+  return user;
+};
+
 
 export const userSerivice = {
     createUserService,
     getAllUsersService,
-    updateUserService
+    updateUserService,
+    toggleBlockUserService
 }
 
 

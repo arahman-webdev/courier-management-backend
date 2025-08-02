@@ -3,7 +3,7 @@ import AppError from "../errorHelper/AppError";
 import { JwtPayload } from "jsonwebtoken";
 import { User } from "../modules/user/user.model";
 import httpStatus from "http-status-codes"
-import { IsActive } from "../modules/user/user.interface";
+import { UserStatus } from "../modules/user/user.interface";
 import { verifyToken } from "../utills/jwt";
 import { envVars } from "../config/env";
 
@@ -30,7 +30,7 @@ export const checkAuth = (...authRoles: string[]) => async (req: Request, res: R
       throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
     }
 
-    if (isUserExist.isActive === IsActive.BLOCKED || isUserExist.isActive === IsActive.INACTIVE) {
+    if (isUserExist.isActive === UserStatus.BLOCKED || isUserExist.isActive === UserStatus.INACTIVE) {
       throw new AppError(httpStatus.BAD_REQUEST, `User is ${isUserExist.isActive}`);
     }
 

@@ -50,7 +50,33 @@ const getNewAccessToken = async (req: Request, res: Response, next: NextFunction
     }
 }
 
+
+// logout only below and router.post('/logout', controler.logut)
+
+const logoutUser = (req: Request, res: Response) => {
+    res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax"
+    })
+
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax'
+    })
+
+    res.status(httpStatus.OK).json({
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "User logged out successfully",
+        data: null
+    })
+}
+
+
 export const AuthControllers = {
     credentialsLogin,
-    getNewAccessToken
+    getNewAccessToken,
+    logoutUser
 }

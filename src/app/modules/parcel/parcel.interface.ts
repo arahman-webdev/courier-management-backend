@@ -24,7 +24,7 @@ export interface IParcelStatusLog {
 
 export interface IParcel {
     trackingId: string,
-    type: string,
+    parcelType: string,
     weight: number,
     deliveryFee: number,
     deliveryDate: Date,

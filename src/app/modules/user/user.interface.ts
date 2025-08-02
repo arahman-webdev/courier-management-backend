@@ -7,7 +7,7 @@ export enum Role {
     RECEIVER = "RECEIVER"
 }
 
-export enum IsActive {
+export enum UserStatus {
 
     ACTIVE = "ACTIVE",
     INACTIVE = "INACTIVE",
@@ -29,7 +29,7 @@ export interface IUser {
     role?: Role
     photo?: string,
     address?: string,
-    isActive?: IsActive,
+    isActive?: UserStatus,
     isVerified?: boolean,
     auth?: IAuthProvider[]
 }

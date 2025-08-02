@@ -25,7 +25,7 @@ const parcelSchema = new Schema<IParcel>({
             required: true,
             unique: true
         },
-        type:{
+        parcelType:{
             type: String,
             required: true
         },

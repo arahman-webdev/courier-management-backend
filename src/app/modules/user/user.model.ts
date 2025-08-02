@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { IAuthProvider, IsActive, IUser, Role } from "./user.interface";
+import { IAuthProvider, IUser, Role, UserStatus } from "./user.interface";
 
 
 const authShema = new Schema<IAuthProvider>({
@@ -24,8 +24,8 @@ const userSchema = new Schema<IUser>({
     address: { type: String },
     isActive: {
         type: String,
-        enum: Object.values(IsActive),
-        default: IsActive.ACTIVE
+        enum: Object.values(UserStatus),
+        default: UserStatus.ACTIVE
     },
     isVerified: {type: Boolean, default: false},
     auth: [authShema]

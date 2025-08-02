@@ -3,10 +3,11 @@ import { AuthControllers } from "./auth.controller"
 
 
 
+
 const router = express.Router()
 
 router.post('/login', AuthControllers.credentialsLogin)
 router.post('/refresh-token', AuthControllers.getNewAccessToken)
-
+router.post('/logout', AuthControllers.logoutUser)
 
 export const authRouter = router
