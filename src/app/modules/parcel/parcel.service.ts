@@ -355,22 +355,22 @@ const deleteParcel = async (id: string) => {
     return deleteParcel
 };
 
-// const rescheduleParcel = async (id: string,newDate: Date,userId: string) => {
-//     const parcel = await Parcel.findById(id);
-//     if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
+const rescheduleParcel = async (id: string,newDate: Date,userId: string) => {
+    const parcel = await Parcel.findById(id);
+    if (!parcel) throw new AppError(statusCode.NOT_FOUND, "Parcel not found");
 
-//     parcel.deliveryDate = newDate;
-//     parcel.status = ParcelStatus.RESCHEDULED;
-//     parcel.statusLog.push({
-//         status: ParcelStatus.RESCHEDULED,
-//         timestamp: new Date(),
-//         updatedBy: new Types.ObjectId(userId),
-//         note: `Rescheduled to ${newDate.toISOString()}`
-//     });
+    parcel.deliveryDate = newDate;
+    parcel.status = ParcelStatus.RESCHEDULED;
+    parcel.statusLog.push({
+        status: ParcelStatus.RESCHEDULED,
+        timestamp: new Date(),
+        updatedBy: new Types.ObjectId(userId),
+        note: `Rescheduled to ${newDate.toISOString()}`
+    });
 
-//     await parcel.save();
-//     return parcel;
-// };
+    await parcel.save();
+    return parcel;
+};
 
 
 
@@ -388,7 +388,8 @@ export const parcelService = {
     unblockParcel,
     returnParcel,
     deleteParcel,
-    trackParcelByTrackingIdService
+    trackParcelByTrackingIdService,
+    rescheduleParcel
 }
 
 

@@ -202,6 +202,43 @@ const trackParcelByTrackingId = async (req: Request, res: Response, next: NextFu
 };
 
 
+
+
+const rescheduleParcelController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parcelId = req.params.id;
+    const { newDate } = req.body;
+    const userId = req.user.userId; // Assuming user info is attached via auth middleware
+
+    if (!newDate) {
+      return res.status(400).json({
+        success: false,
+        message: "New delivery date is required",
+      });
+    }
+
+    const parsedDate = new Date(newDate);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date format",
+      });
+    }
+
+    const rescheduledParcel = await parcelService.rescheduleParcel(parcelId, parsedDate, userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Parcel rescheduled successfully",
+      data: rescheduledParcel,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
 export const parcelController = {
     createParcel,
     getMyParcel,
@@ -214,5 +251,6 @@ export const parcelController = {
     unblockParcel,
     returnParcel,
     deleteParcel,
-    trackParcelByTrackingId
+    trackParcelByTrackingId,
+    rescheduleParcelController
 }

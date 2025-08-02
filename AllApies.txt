@@ -14,6 +14,7 @@ unblock: http://localhost:5000/api/v1/parcels/unblcok/688c8f1bbf7686a612a03273
 return: http://localhost:5000/api/v1/parcels/return/688c8f1bbf7686a612a03273
 delete: http://localhost:5000/api/v1/parcels/delete/688c8f1bbf7686a612a03273
 tracking: http://localhost:5000/api/v1/parcels/tracking/TRA_1753933164277_712
+tracking: http://localhost:5000/api/v1/parcels/reschedule/688c8f1bbf7686a612a03273
 
 
 -----------------USER -----------------------------

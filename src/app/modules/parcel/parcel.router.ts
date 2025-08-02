@@ -20,6 +20,7 @@ router.patch('/return/:id', checkAuth(Role.ADMIN, Role.RECEIVER), parcelControll
 router.delete('/delete/:id', checkAuth(Role.ADMIN, Role.SENDER), parcelController.deleteParcel)
 router.get('/:id/status-log', checkAuth(...Object.values(Role)), parcelController.getParcelStatusLog)
 router.get('/', parcelController.getAllParcels)
+router.get('/reschedule/:id', checkAuth(Role.ADMIN), parcelController.rescheduleParcelController)
 
 
 // pass: 123456A2a$
