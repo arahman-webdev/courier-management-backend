@@ -52,6 +52,13 @@ The backend ensures robust data validation, modular architecture, and scalable d
 
 3. Centralized error handling and utilities
 
+# Tech Stack
+
+1. Node.js
+2. Express.js
+3. Mongodb via mongoose
+4. Typescript
+
 # How to run this in locally
 Clone the repo: git colne https://github.com/arahman-webdev/courier-management-backend.git
 cd your project name.
