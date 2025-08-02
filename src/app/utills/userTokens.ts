@@ -1,6 +1,6 @@
 import { JwtPayload } from "jsonwebtoken";
 import { envVars } from "../config/env";
-import { IsActive, IUser } from "../modules/user/user.interface";
+import { UserStatus, IUser } from "../modules/user/user.interface";
 import { generateToken, verifyToken } from "./jwt";
 import { User } from "../modules/user/user.model";
 import AppError from "../errorHelper/AppError";
@@ -39,7 +39,7 @@ export const createNewAccessTokenWithRefreshToken = async (refreshToken: string)
 
     console.log("from user token in the utills....",isExistUser)
 
-    if (isExistUser.isActive === IsActive.BLOCKED || isExistUser.isActive === IsActive.INACTIVE) {
+    if (isExistUser.isActive === UserStatus.BLOCKED || isExistUser.isActive === UserStatus.INACTIVE) {
         throw new AppError(httpStatus.BAD_REQUEST, `User is ${isExistUser.isActive}`)
     }
 
