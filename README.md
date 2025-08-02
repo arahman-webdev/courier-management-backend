@@ -76,31 +76,31 @@ And then npm run dev
 
 # Auth Routes
 
-1. POST	/auth/register	Register as sender or receiver	Public
-2. POST	/auth/login	Login with email and password	Public
+1. POST	/auth/register	Register as sender or receiver by	Public
+2. POST	/auth/login	Login with email and password	by Public
 
 
 # User Routes
 
-1. GET	     /users	      Get all users	                   Admin
-2. PATCH	 /users/:id	Update user info	               Self / Admin
-3. PATCH	 /users/block/:id	Block or unblock a user	   Admin
+1. GET	     /users	      Get all users	                  by Admin
+2. PATCH	 /users/:id	Update user info	              by Self / Admin
+3. PATCH	 /users/block/:id	Block or unblock a user	  by Admin
 
 
 # Parcel Routes 
 
-1. POST	/parcels	                       Create a new parcel	            Sender
-2. GET	/parcels	                       Get parcels of logged-in user	Sender/Receiver
-3. PATCH	/parcels/cancel/:id	           Cancel a parcel	                Sender
-4. PATCH	/parcels/status/:id	           Update status of parcel	        Admin
-5. PATCH	/parcels/confirm/:id	       Confirm delivery	                Receiver
-6. PATCH	/parcels/block/:id	           Block a parcel	                Admin
-7. PATCH	/parcels/unblock/:id	       Unblock a parcel	                Admin
-8. PATCH	/parcels/return/:id	           Return a parcel	                Admin
-9. PATCH	/parcels/reschedule/:id	       Reschedule delivery	            Admin/Sender
-10. GET	    /parcels/log/:id	           See parcel status log	        Admin/Sender/Receiver
-11. GET	    /parcels/track/:trackingId	   Track parcel by tracking ID	    Public
-12. DELETE	/parcels/:id	               Delete a parcel	                Admin
+1. POST	/parcels	                       Create a new parcel	          by  Sender
+2. GET	/parcels	                       Get parcels of logged-in user  by Sender/Receiver
+3. PATCH	/parcels/cancel/:id	           Cancel a parcel	              by  Sender
+4. PATCH	/parcels/status/:id	           Update status of parcel	      by  Admin
+5. PATCH	/parcels/confirm/:id	       Confirm delivery	              by  Receiver
+6. PATCH	/parcels/block/:id	           Block a parcel	              by  Admin
+7. PATCH	/parcels/unblock/:id	       Unblock a parcel	              by  Admin
+8. PATCH	/parcels/return/:id	           Return a parcel	              by  Admin
+9. PATCH	/parcels/reschedule/:id	       Reschedule delivery	          by  Admin/Sender
+10. GET	    /parcels/log/:id	           See parcel status log	      by  Admin/Sender/Receiver
+11. GET	    /parcels/track/:trackingId	   Track parcel by tracking ID	  by  Public
+12. DELETE	/parcels/:id	               Delete a parcel	              by  Admin
 
 If you need help or want to connect
 
